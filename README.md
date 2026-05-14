@@ -12,15 +12,15 @@ roomsplat run living_room.mp4 --name "Living Room"
 [![Live Demo](https://img.shields.io/badge/▶_Live_Demo-Netlify-blue)](https://roomsplat-demo.netlify.app)
 
 > **Demo note:** The live demo loads the compact `.splat` file (11 MB, SH0 flat colour) for fast
-> in-browser loading. The screenshots below are rendered from the full `.ply` file (SH2
+> in-browser loading. The screenshots below are rendered from the full `.ply` file (SH3
 > view-dependent colour) using `roomsplat view` locally — colours shift subtly as you move,
 > which the demo does not show. Run the pipeline locally to get the full-quality experience.
 
 <p align="center">
-  <img src="docs/Screenshot from 2026-05-13 22-17-08.png" width="49%" alt="Office scene — full .ply SH2 render, view 1"/>
-  <img src="docs/Screenshot from 2026-05-13 22-18-52.png" width="49%" alt="Office scene — full .ply SH2 render, view 2"/>
+  <img src="docs/Screenshot from 2026-05-13 22-17-08.png" width="49%" alt="Office scene — full .ply SH3 render, view 1"/>
+  <img src="docs/Screenshot from 2026-05-13 22-18-52.png" width="49%" alt="Office scene — full .ply SH3 render, view 2"/>
 </p>
-<p align="center"><em>Screenshots captured from the full .ply viewer (SH2, view-dependent colour).</em></p>
+<p align="center"><em>Screenshots captured from the full .ply viewer (SH3, view-dependent colour).</em></p>
 
 ---
 
@@ -43,7 +43,7 @@ Phone video  ──►  Frame extraction  ──►  Camera poses  ──►  3D
    `cameras.json` is written so the viewer starts at a real training-camera position.
 5. **Viewer** — A self-contained HTML page powered by
    [`@mkkellogg/gaussian-splats-3d`](https://github.com/mkkellogg/GaussianSplats3D) renders the
-   scene with SH2 view-dependent colour and full WASD + mouse navigation.
+   scene with SH2/SH3 view-dependent colour and full WASD + mouse navigation.
 
 ---
 
@@ -279,7 +279,7 @@ https://roomsplat-demo.netlify.app
 ```
 
 The demo loads the `.splat` (SH0, flat colour). The screenshots in this README are from the
-full `.ply` viewer (SH2, view-dependent colour) — run `roomsplat view` locally for that quality.
+full `.ply` viewer (SH3, view-dependent colour) — run `roomsplat view` locally for that quality.
 
 To serve it locally first:
 ```bash
