@@ -422,7 +422,7 @@ function parseSplat(buf) {
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, sorted);
     sortPending = false;
     if (latestViewRow2) {
-      requestSort(latestViewRow2);
+      requestSortSafe(latestViewRow2);
       latestViewRow2 = null;
     }
   };
