@@ -5,185 +5,563 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Office — roomsplat demo</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #000; overflow: hidden; font-family: system-ui, sans-serif; }
-
-  #ui {
-    position: absolute; top: 0; left: 0; right: 0;
-    display: flex; justify-content: space-between; align-items: flex-start;
-    padding: 16px 20px; pointer-events: none; z-index: 10;
-  }
-  #room-name {
-    color: #fff; font-size: 1.1rem; font-weight: 600;
-    text-shadow: 0 1px 4px rgba(0,0,0,.7);
-    background: rgba(0,0,0,.35); backdrop-filter: blur(6px);
-    padding: 6px 14px; border-radius: 8px;
-  }
-  #controls {
-    color: rgba(255,255,255,.65); font-size: .75rem; line-height: 1.7;
-    text-align: right;
-    background: rgba(0,0,0,.3); backdrop-filter: blur(6px);
-    padding: 8px 12px; border-radius: 8px;
-  }
-  #loading {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: #111; color: #ccc; gap: 16px; z-index: 20;
-  }
-  #loading h2 { font-size: 1.3rem; font-weight: 400; }
-  #progress-bar {
-    width: 280px; height: 4px; background: #333; border-radius: 2px; overflow: hidden;
-  }
-  #progress-fill { height: 100%; width: 0; background: #4ea8de; transition: width .1s; }
-  #loading-status { font-size: .8rem; color: #666; }
-  #coords {
-    position: absolute; bottom: 16px; left: 20px;
-    color: rgba(255,255,255,.8); font-size: .72rem; line-height: 1.6;
-    font-family: 'Courier New', monospace;
-    background: rgba(0,0,0,.4); backdrop-filter: blur(6px);
-    padding: 6px 10px; border-radius: 6px;
-    pointer-events: none; white-space: pre; z-index: 10;
-  }
-  #bottom-bar {
-    position: absolute; bottom: 16px; right: 20px;
-    display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
-    z-index: 10;
-  }
-  #format-toggle {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(0,0,0,.45); backdrop-filter: blur(6px);
-    padding: 6px 12px; border-radius: 6px;
-  }
-  #format-toggle span { font-size: .72rem; color: rgba(255,255,255,.55); }
-  #format-toggle button {
-    font-size: .72rem; padding: 3px 10px; border-radius: 4px; border: none;
-    cursor: pointer; font-weight: 600; transition: background .15s;
-  }
-  #btn-splat        { background: #4ea8de; color: #fff; }
-  #btn-ply          { background: #444; color: #666; cursor: not-allowed; }
-  #btn-ply:hover    { background: #444; }
-  #format-note {
-    font-size: .68rem; color: rgba(255,255,255,.35);
-    background: rgba(0,0,0,.35); backdrop-filter: blur(6px);
-    padding: 4px 10px; border-radius: 5px; text-align: right; max-width: 280px;
-  }
-  #gh-link {
-    font-size: .72rem; color: rgba(255,255,255,.5);
-    background: rgba(0,0,0,.4); backdrop-filter: blur(6px);
-    padding: 5px 10px; border-radius: 5px;
-    text-decoration: none;
-  }
-  #gh-link:hover { color: #fff; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;overflow:hidden;font-family:system-ui,sans-serif}
+canvas{display:block;width:100vw;height:100vh}
+#ui{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
+    align-items:flex-start;padding:16px 20px;pointer-events:none;z-index:10}
+#room-name{color:#fff;font-size:1.1rem;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.7);
+    background:rgba(0,0,0,.35);backdrop-filter:blur(6px);padding:6px 14px;border-radius:8px}
+#controls{color:rgba(255,255,255,.65);font-size:.75rem;line-height:1.7;text-align:right;
+    background:rgba(0,0,0,.3);backdrop-filter:blur(6px);padding:8px 12px;border-radius:8px}
+#loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;background:#111;color:#ccc;gap:16px;z-index:20}
+#loading h2{font-size:1.3rem;font-weight:400}
+#progress-bar{width:280px;height:4px;background:#333;border-radius:2px;overflow:hidden}
+#progress-fill{height:100%;width:0;background:#4ea8de;transition:width .1s}
+#loading-status{font-size:.8rem;color:#666}
+#coords{position:absolute;bottom:16px;left:20px;color:rgba(255,255,255,.8);font-size:.72rem;
+    line-height:1.6;font-family:'Courier New',monospace;background:rgba(0,0,0,.4);
+    backdrop-filter:blur(6px);padding:6px 10px;border-radius:6px;
+    pointer-events:none;white-space:pre;z-index:10}
+#gh-link{position:absolute;bottom:16px;right:20px;font-size:.72rem;color:rgba(255,255,255,.5);
+    background:rgba(0,0,0,.4);backdrop-filter:blur(6px);padding:5px 10px;border-radius:5px;
+    text-decoration:none;z-index:10}
+#gh-link:hover{color:#fff}
 </style>
 </head>
 <body>
-
+<canvas id="cv"></canvas>
 <div id="ui">
   <div id="room-name">Office — roomsplat demo</div>
-  <div id="controls">
-    Left-drag — orbit<br>
-    Right-drag — pan<br>
-    Scroll — zoom<br>
-    WASD — fly
-  </div>
+  <div id="controls">Left-drag — orbit<br>Right-drag — pan<br>Scroll — zoom<br>WASD — fly</div>
 </div>
-
 <div id="coords"></div>
-
-<div id="bottom-bar">
-  <div id="format-toggle">
-    <span>Quality:</span>
-    <button id="btn-splat">.splat — SH0</button>
-    <button id="btn-ply" title="Full-quality .ply not hosted in this demo">.ply — SH2 ✗</button>
-  </div>
-  <div id="format-note">
-    This demo loads the compact <strong>.splat</strong> file (11 MB, SH0 flat colour).<br>
-    Run locally with <code>roomsplat view</code> to get SH2 view-dependent colour from the full .ply.
-  </div>
-  <a id="gh-link" href="https://github.com/Ahmedn1/roomsplat" target="_blank">★ GitHub — roomsplat</a>
-</div>
-
+<a id="gh-link" href="https://github.com/Ahmedn1/roomsplat" target="_blank">★ GitHub — roomsplat</a>
 <div id="loading">
   <h2>Loading scene…</h2>
   <div id="progress-bar"><div id="progress-fill"></div></div>
-  <div id="loading-status">Fetching scene.splat (11 MB)…</div>
+  <div id="loading-status">Fetching scene.splat…</div>
 </div>
+<script>
+'use strict';
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+// ── Sort worker (pure JS, no WASM, no SharedArrayBuffer) ─────────────────────
+const WORKER_SRC = `
+self.onmessage = function(e) {
+  const {positions, viewRow2, count} = e.data;
+  const depths = new Float32Array(count);
+  const r0=viewRow2[0], r1=viewRow2[1], r2=viewRow2[2], r3=viewRow2[3];
+  for (let i = 0; i < count; i++) {
+    const b = i*3;
+    depths[i] = r0*positions[b] + r1*positions[b+1] + r2*positions[b+2] + r3;
   }
-}
-</script>
-<script type="module">
-import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.6/build/gaussian-splats-3d.module.js';
+  const idx = new Int32Array(count);
+  for (let i = 0; i < count; i++) idx[i] = i;
+  idx.sort((a,b) => depths[a] - depths[b]);
+  self.postMessage({idx: idx.buffer}, [idx.buffer]);
+};
+`;
 
+// ── Shaders ──────────────────────────────────────────────────────────────────
+const VS = `#version 300 es
+precision highp float;
+precision highp int;
+precision highp sampler2D;
+
+in vec2 a_quad;
+in int  a_idx;
+
+uniform mat4 u_view;
+uniform mat4 u_proj;
+uniform vec2 u_focal;
+uniform vec2 u_vp;
+uniform sampler2D u_pos;
+uniform sampler2D u_cov;
+uniform sampler2D u_col;
+
+out vec4 v_col;
+out vec2 v_quad;
+
+void main() {
+  // Fetch from textures
+  int pw = textureSize(u_pos,0).x;
+  vec3 pos = texelFetch(u_pos, ivec2(a_idx%pw, a_idx/pw), 0).xyz;
+
+  int cw = textureSize(u_cov,0).x;
+  int ci = a_idx*2;
+  vec3 cA = texelFetch(u_cov, ivec2(ci%cw,   ci/cw),   0).xyz;
+  vec3 cB = texelFetch(u_cov, ivec2((ci+1)%cw,(ci+1)/cw),0).xyz;
+
+  int kw = textureSize(u_col,0).x;
+  v_col = texelFetch(u_col, ivec2(a_idx%kw, a_idx/kw), 0);
+
+  // Camera-space position
+  vec4 cam = u_view * vec4(pos, 1.0);
+  if (cam.z > -0.1) { gl_Position=vec4(0,0,2,1); v_quad=a_quad; return; }
+
+  vec4 clip = u_proj * cam;
+  vec2 ndc  = clip.xy / clip.w;
+
+  // Jacobian of pinhole projection at cam
+  float tz = cam.z, tx = cam.x, ty = cam.y;
+  float j00 =  u_focal.x / tz;
+  float j02 = -u_focal.x * tx / (tz*tz);
+  float j11 =  u_focal.y / tz;
+  float j12 = -u_focal.y * ty / (tz*tz);
+
+  // T = J(2x3) * W(3x3), W = upper-left 3x3 of view matrix
+  // GLSL mat4 column-major: u_view[col][row]
+  float t00=j00*u_view[0][0]+j02*u_view[0][2];
+  float t01=j00*u_view[1][0]+j02*u_view[1][2];
+  float t02=j00*u_view[2][0]+j02*u_view[2][2];
+  float t10=j11*u_view[0][1]+j12*u_view[0][2];
+  float t11=j11*u_view[1][1]+j12*u_view[1][2];
+  float t12=j11*u_view[2][1]+j12*u_view[2][2];
+
+  // Cov3D symmetric: cA=(c00,c01,c02), cB=(c11,c12,c22)
+  float c00=cA.x,c01=cA.y,c02=cA.z,c11=cB.x,c12=cB.y,c22=cB.z;
+
+  // TC = T * Cov3D  (2x3)
+  float tc00=t00*c00+t01*c01+t02*c02;
+  float tc01=t00*c01+t01*c11+t02*c12;
+  float tc02=t00*c02+t01*c12+t02*c22;
+  float tc10=t10*c00+t11*c01+t12*c02;
+  float tc11=t10*c01+t11*c11+t12*c12;
+  float tc12=t10*c02+t11*c12+t12*c22;
+
+  // Cov2D = TC * T^T  (2x2) + low-pass filter
+  float a = tc00*t00+tc01*t01+tc02*t02 + 0.3;
+  float b = tc00*t10+tc01*t11+tc02*t12;
+  float c = tc10*t10+tc11*t11+tc12*t12 + 0.3;
+
+  // Eigenvalues / eigenvectors for ellipse axes
+  float det  = max(a*c - b*b, 1e-8);
+  float tr   = a + c;
+  float disc = sqrt(max(tr*tr*0.25 - det, 0.0));
+  float lam1 = tr*0.5 + disc;
+  float lam2 = tr*0.5 - disc;
+
+  vec2 bn = vec2(b, lam1-a);
+  vec2 v1 = length(bn) > 1e-6 ? normalize(bn) : vec2(1.0,0.0);
+  vec2 v2 = vec2(-v1.y, v1.x);
+
+  float r1 = min(3.0*sqrt(max(lam1,0.0)), 1024.0);
+  float r2 = min(3.0*sqrt(max(lam2,0.0)), 1024.0);
+
+  vec2 off_px  = r1*v1*a_quad.x + r2*v2*a_quad.y;
+  vec2 off_ndc = off_px / (u_vp * 0.5);
+
+  gl_Position = vec4(ndc + off_ndc, clip.z/clip.w, 1.0);
+  v_quad = a_quad;
+}`;
+
+const FS = `#version 300 es
+precision highp float;
+in vec4 v_col;
+in vec2 v_quad;
+out vec4 fragColor;
+void main() {
+  float power = -4.5 * dot(v_quad, v_quad);
+  if (power < -12.0) discard;
+  float alpha = v_col.a * exp(power);
+  if (alpha < 0.004) discard;
+  fragColor = vec4(v_col.rgb * alpha, alpha);
+}`;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function makeShader(gl, type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
+    throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function makeProgram(gl, vs, fs) {
+  const p = gl.createProgram();
+  gl.attachShader(p, makeShader(gl, gl.VERTEX_SHADER, vs));
+  gl.attachShader(p, makeShader(gl, gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS))
+    throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+function tex2d(gl, data, w, h, internalFmt, fmt, type) {
+  const t = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, internalFmt, w, h, 0, fmt, type, data);
+  return t;
+}
+
+// ── Mat4 (column-major, minimal) ─────────────────────────────────────────────
+function mat4id() {
+  return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+}
+function perspective(fovY, aspect, near, far) {
+  const f = 1 / Math.tan(fovY / 2);
+  const d = far - near;
+  return new Float32Array([
+    f/aspect,0,0,0,
+    0,f,0,0,
+    0,0,-(far+near)/d,-1,
+    0,0,-2*far*near/d,0
+  ]);
+}
+// Look-at: from eye toward target with up
+function lookAt(eye, target, up) {
+  const z = norm3(sub3(eye, target));
+  const x = norm3(cross3(up, z));
+  const y = cross3(z, x);
+  return new Float32Array([
+    x[0],y[0],z[0],0,
+    x[1],y[1],z[1],0,
+    x[2],y[2],z[2],0,
+    -dot3(x,eye),-dot3(y,eye),-dot3(z,eye),1
+  ]);
+}
+function sub3(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]]}
+function add3(a,b){return[a[0]+b[0],a[1]+b[1],a[2]+b[2]]}
+function scale3(a,s){return[a[0]*s,a[1]*s,a[2]*s]}
+function dot3(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]}
+function cross3(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]}
+function norm3(a){const l=Math.sqrt(dot3(a,a))||1;return[a[0]/l,a[1]/l,a[2]/l]}
+
+// ── Parse .splat → typed arrays ───────────────────────────────────────────────
+function parseSplat(buf) {
+  const n = buf.byteLength / 32;
+  const f32 = new Float32Array(buf);
+  const u8  = new Uint8Array(buf);
+
+  const positions = new Float32Array(n * 3);
+  const cov3d     = new Float32Array(n * 6);
+  const colors    = new Uint8Array(n * 4);
+
+  for (let i = 0; i < n; i++) {
+    const fo = i * 8;   // float32 offset (8 f32 per splat)
+    const bo = i * 32;  // byte offset
+
+    // Position
+    positions[i*3]   = f32[fo];
+    positions[i*3+1] = f32[fo+1];
+    positions[i*3+2] = f32[fo+2];
+
+    // Scale (linear, already exp'd)
+    const sx = f32[fo+3], sy = f32[fo+4], sz = f32[fo+5];
+
+    // Color
+    colors[i*4]   = u8[bo+24];
+    colors[i*4+1] = u8[bo+25];
+    colors[i*4+2] = u8[bo+26];
+    colors[i*4+3] = u8[bo+27];
+
+    // Quaternion (xyzw, packed as (q+1)/2*255)
+    const qx = (u8[bo+28]/255*2-1);
+    const qy = (u8[bo+29]/255*2-1);
+    const qz = (u8[bo+30]/255*2-1);
+    const qw = (u8[bo+31]/255*2-1);
+
+    // Rotation matrix from quaternion (xyzw)
+    const ql = Math.sqrt(qx*qx+qy*qy+qz*qz+qw*qw)||1;
+    const nx=qx/ql, ny=qy/ql, nz=qz/ql, nw=qw/ql;
+
+    const r00=1-2*(ny*ny+nz*nz), r01=2*(nx*ny-nw*nz), r02=2*(nx*nz+nw*ny);
+    const r10=2*(nx*ny+nw*nz),   r11=1-2*(nx*nx+nz*nz), r12=2*(ny*nz-nw*nx);
+    const r20=2*(nx*nz-nw*ny),   r21=2*(ny*nz+nw*nx),   r22=1-2*(nx*nx+ny*ny);
+
+    // M = R * diag(s),  Cov3D = M * M^T
+    // M columns: [r0c*sx, r1c*sy, r2c*sz] for c=0,1,2
+    const m00=r00*sx, m10=r10*sx, m20=r20*sx;
+    const m01=r01*sy, m11=r11*sy, m21=r21*sy;
+    const m02=r02*sz, m12=r12*sz, m22=r22*sz;
+
+    cov3d[i*6]   = m00*m00+m01*m01+m02*m02; // [0,0]
+    cov3d[i*6+1] = m00*m10+m01*m11+m02*m12; // [0,1]
+    cov3d[i*6+2] = m00*m20+m01*m21+m02*m22; // [0,2]
+    cov3d[i*6+3] = m10*m10+m11*m11+m12*m12; // [1,1]
+    cov3d[i*6+4] = m10*m20+m11*m21+m12*m22; // [1,2]
+    cov3d[i*6+5] = m20*m20+m21*m21+m22*m22; // [2,2]
+  }
+  return {n, positions, cov3d, colors};
+}
+
+// ── Main ──────────────────────────────────────────────────────────────────────
 (async () => {
+  const canvas = document.getElementById('cv');
+  const gl = canvas.getContext('webgl2', {premultipliedAlpha: true, antialias: false});
+  if (!gl) { alert('WebGL2 not available'); return; }
+
   const progressFill  = document.getElementById('progress-fill');
   const loadingStatus = document.getElementById('loading-status');
   const loading       = document.getElementById('loading');
 
-  // .ply (87 MB) is not hosted in docs/ — too large for a GitHub Pages demo.
-  // The full-quality PLY viewer is available when running locally via `roomsplat view`.
-  document.getElementById('btn-ply').addEventListener('click', () => {
-    alert(
-      'The full-quality .ply file (87 MB, SH2 view-dependent colour) is not hosted in this demo.\n\n' +
-      'To view it locally:\n' +
-      '  git clone https://github.com/Ahmedn1/roomsplat\n' +
-      '  roomsplat run your_video.mp4\n' +
-      '  roomsplat view output_dir/'
-    );
-  });
+  // ── Load scene.splat ──────────────────────────────────────────────────────
+  const splatUrl = new URL('scene.splat', window.location.href).href;
+  const resp = await fetch(splatUrl);
+  if (!resp.ok) throw new Error('Failed to fetch scene.splat: ' + resp.status);
+  const contentLength = resp.headers.get('Content-Length');
+  const total = contentLength ? parseInt(contentLength) : 0;
+  const reader = resp.body.getReader();
+  const chunks = [];
+  let received = 0;
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    if (total) {
+      const pct = (received / total * 100).toFixed(0);
+      progressFill.style.width = pct + '%';
+      loadingStatus.textContent = `Loading… ${pct}%`;
+    } else {
+      loadingStatus.textContent = `Loading… ${(received/1048576).toFixed(1)} MB`;
+    }
+  }
+  progressFill.style.width = '100%';
+  loadingStatus.textContent = 'Processing…';
 
-  let camPos    = undefined;
-  let camLookAt = undefined;
+  const buf = await new Blob(chunks).arrayBuffer();
+  const {n, positions, cov3d, colors} = parseSplat(buf);
+
+  // ── Initial camera from cameras.json ─────────────────────────────────────
+  let eye    = [0, 0, 5];
+  let target = [0, 0, 0];
   try {
-    const cd = await fetch('cameras.json').then(r => r.ok ? r.json() : null);
+    const cd = await fetch(new URL('cameras.json', window.location.href).href)
+                       .then(r => r.ok ? r.json() : null);
     if (cd && cd.cameras && cd.cameras.length > 0) {
       const cam = cd.cameras[cd.initial ?? Math.floor(cd.cameras.length / 2)];
-      const p = cam.pos, fwd = cam.forward;
-      camPos    = p;
-      camLookAt = [p[0] + fwd[0], p[1] + fwd[1], p[2] + fwd[2]];
+      eye    = cam.pos;
+      target = [cam.pos[0]+cam.forward[0], cam.pos[1]+cam.forward[1], cam.pos[2]+cam.forward[2]];
     }
-  } catch (_) {}
+  } catch(_) {}
 
-  const viewerOpts = {
-    cameraUp: [0, -1, 0],
-    selfDrivenMode: true,
-    useBuiltInControls: true,
-    renderMode: GaussianSplats3D.RenderMode.OnChange,
+  // ── Build GPU textures ────────────────────────────────────────────────────
+  const TEX_W = 2048;
+
+  // Position texture (RGB32F)
+  const posTexH = Math.ceil(n / TEX_W);
+  const posData = new Float32Array(TEX_W * posTexH * 3);
+  posData.set(positions);
+  const posTex = tex2d(gl, posData, TEX_W, posTexH, gl.RGB32F, gl.RGB, gl.FLOAT);
+
+  // Cov3D texture: 2 texels per splat (RGB32F each → 6 values)
+  const covTexH = Math.ceil((n * 2) / TEX_W);
+  const covData = new Float32Array(TEX_W * covTexH * 3);
+  for (let i = 0; i < n; i++) {
+    covData[i*6]   = cov3d[i*6];
+    covData[i*6+1] = cov3d[i*6+1];
+    covData[i*6+2] = cov3d[i*6+2];
+    covData[i*6+3] = cov3d[i*6+3];
+    covData[i*6+4] = cov3d[i*6+4];
+    covData[i*6+5] = cov3d[i*6+5];
+  }
+  const covTex = tex2d(gl, covData, TEX_W, covTexH, gl.RGB32F, gl.RGB, gl.FLOAT);
+
+  // Color texture (RGBA8)
+  const colTexH = Math.ceil(n / TEX_W);
+  const colData = new Uint8Array(TEX_W * colTexH * 4);
+  colData.set(colors);
+  const colTex = tex2d(gl, colData, TEX_W, colTexH, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE);
+
+  // ── Geometry buffers ──────────────────────────────────────────────────────
+  const prog = makeProgram(gl, VS, FS);
+  const aQuad = gl.getAttribLocation(prog, 'a_quad');
+  const aIdx  = gl.getAttribLocation(prog, 'a_idx');
+
+  // Quad vertices: 4 corners as triangle-strip
+  const quadBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+  gl.bufferData(gl.ARRAY_BUFFER,
+    new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+
+  // Per-instance sorted index buffer (Int32, updated each frame)
+  const idxBuf = gl.createBuffer();
+  const idxData = new Int32Array(n);
+  for (let i = 0; i < n; i++) idxData[i] = i;
+  gl.bindBuffer(gl.ARRAY_BUFFER, idxBuf);
+  gl.bufferData(gl.ARRAY_BUFFER, idxData, gl.DYNAMIC_DRAW);
+
+  // VAO
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+  gl.enableVertexAttribArray(aQuad);
+  gl.vertexAttribPointer(aQuad, 2, gl.FLOAT, false, 0, 0);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, idxBuf);
+  gl.enableVertexAttribArray(aIdx);
+  gl.vertexAttribIPointer(aIdx, 1, gl.INT, 4, 0);
+  gl.vertexAttribDivisor(aIdx, 1);
+
+  gl.bindVertexArray(null);
+
+  // ── Uniforms ──────────────────────────────────────────────────────────────
+  const uView   = gl.getUniformLocation(prog, 'u_view');
+  const uProj   = gl.getUniformLocation(prog, 'u_proj');
+  const uFocal  = gl.getUniformLocation(prog, 'u_focal');
+  const uVp     = gl.getUniformLocation(prog, 'u_vp');
+  const uPos    = gl.getUniformLocation(prog, 'u_pos');
+  const uCov    = gl.getUniformLocation(prog, 'u_cov');
+  const uCol    = gl.getUniformLocation(prog, 'u_col');
+
+  // ── Sort worker ───────────────────────────────────────────────────────────
+  const workerBlob = new Blob([WORKER_SRC], {type:'application/javascript'});
+  const worker = new Worker(URL.createObjectURL(workerBlob));
+  let sortPending = false;
+  let latestViewRow2 = null;
+
+  worker.onmessage = (e) => {
+    const sorted = new Int32Array(e.data.idx);
+    gl.bindBuffer(gl.ARRAY_BUFFER, idxBuf);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, sorted);
+    sortPending = false;
+    if (latestViewRow2) {
+      requestSort(latestViewRow2);
+      latestViewRow2 = null;
+    }
   };
-  if (camPos)    viewerOpts.initialCameraPosition = camPos;
-  if (camLookAt) viewerOpts.initialCameraLookAt   = camLookAt;
 
-  const viewer = new GaussianSplats3D.Viewer(viewerOpts);
+  function requestSortSafe(viewMat) {
+    const row2 = [viewMat[2], viewMat[6], viewMat[10], viewMat[14]];
+    if (sortPending) { latestViewRow2 = row2; return; }
+    sortPending = true;
+    const posCopy = positions.slice();
+    worker.postMessage({positions: posCopy, viewRow2: row2, count: n}, [posCopy.buffer]);
+  }
 
-  const splatUrl = new URL('scene.splat', window.location.href).href;
-  await viewer.addSplatScene(splatUrl, {
-    splatAlphaRemovalThreshold: 5,
-    showLoadingUI: false,
-    onProgress(pct) {
-      progressFill.style.width = pct + '%';
-      loadingStatus.textContent = pct < 100
-        ? `Loading… ${pct.toFixed(0)}%`
-        : 'Processing…';
-    },
+  // ── Camera state ──────────────────────────────────────────────────────────
+  let eyeV    = eye.slice();
+  let targetV = target.slice();
+  let upV     = [0, -1, 0];
+
+  // Mouse / keyboard state
+  const keys = {};
+  let mouseDown = false, rightDown = false;
+  let lastMX = 0, lastMY = 0;
+
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  canvas.addEventListener('mousedown', e => {
+    if (e.button === 0) mouseDown = true;
+    if (e.button === 2) rightDown = true;
+    lastMX = e.clientX; lastMY = e.clientY;
   });
+  window.addEventListener('mouseup', e => {
+    if (e.button === 0) mouseDown = false;
+    if (e.button === 2) rightDown = false;
+  });
+  window.addEventListener('mousemove', e => {
+    if (!mouseDown && !rightDown) return;
+    const dx = e.clientX - lastMX, dy = e.clientY - lastMY;
+    lastMX = e.clientX; lastMY = e.clientY;
+    if (mouseDown) {
+      // Orbit
+      const r = sub3(eyeV, targetV);
+      const len = Math.sqrt(dot3(r,r));
+      const theta = Math.atan2(r[0], r[2]) - dx * 0.005;
+      const phi   = Math.acos(Math.max(-0.99, Math.min(0.99, r[1]/len))) + dy * 0.005;
+      const sinPhi = Math.sin(Math.max(0.01, Math.min(Math.PI-0.01, phi)));
+      eyeV = add3(targetV, [
+        len * sinPhi * Math.sin(theta),
+        len * Math.cos(phi),
+        len * sinPhi * Math.cos(theta)
+      ]);
+    } else {
+      // Pan
+      const fwd  = norm3(sub3(targetV, eyeV));
+      const right = norm3(cross3(fwd, upV));
+      const up2   = cross3(right, fwd);
+      const s = 0.002 * Math.sqrt(dot3(sub3(eyeV, targetV), sub3(eyeV, targetV)));
+      const pan = add3(scale3(right, -dx*s), scale3(up2, dy*s));
+      eyeV    = add3(eyeV, pan);
+      targetV = add3(targetV, pan);
+    }
+  });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const fwd = norm3(sub3(targetV, eyeV));
+    const d   = e.deltaY * 0.002 * Math.sqrt(dot3(sub3(eyeV, targetV), sub3(eyeV, targetV)));
+    eyeV = add3(eyeV, scale3(fwd, -d));
+  }, {passive: false});
+  window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; });
+  window.addEventListener('keyup',   e => { keys[e.key.toLowerCase()] = false; });
+
+  // ── Resize ────────────────────────────────────────────────────────────────
+  function resize() {
+    canvas.width  = canvas.clientWidth  * devicePixelRatio;
+    canvas.height = canvas.clientHeight * devicePixelRatio;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+  window.addEventListener('resize', resize);
+  resize();
 
   loading.style.display = 'none';
-  viewer.start();
 
+  // ── Render loop ───────────────────────────────────────────────────────────
   const coordsEl = document.getElementById('coords');
-  const fmt = n => n.toFixed(3).padStart(8);
-  (function tick() {
-    requestAnimationFrame(tick);
-    const p = viewer.camera && viewer.camera.position;
-    if (p) coordsEl.textContent = `x:${fmt(p.x)}  y:${fmt(p.y)}  z:${fmt(p.z)}`;
-  })();
+  const fmt = x => x.toFixed(3).padStart(8);
+  let lastSort = 0;
+  let lastTime = performance.now();
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min((now - lastTime) / 1000, 0.1);
+    lastTime = now;
+
+    // WASD movement
+    const fwd   = norm3(sub3(targetV, eyeV));
+    const right2 = norm3(cross3(fwd, upV));
+    const spd = 0.5 * dt;
+    const mv = [0,0,0];
+    if (keys['w']||keys['arrowup'])    { eyeV=add3(eyeV,scale3(fwd,spd));   targetV=add3(targetV,scale3(fwd,spd)); }
+    if (keys['s']||keys['arrowdown'])  { eyeV=add3(eyeV,scale3(fwd,-spd));  targetV=add3(targetV,scale3(fwd,-spd)); }
+    if (keys['a']||keys['arrowleft'])  { eyeV=add3(eyeV,scale3(right2,-spd)); targetV=add3(targetV,scale3(right2,-spd)); }
+    if (keys['d']||keys['arrowright']) { eyeV=add3(eyeV,scale3(right2,spd));  targetV=add3(targetV,scale3(right2,spd)); }
+
+    // Matrices
+    const W = canvas.width, H = canvas.height;
+    const fovY   = Math.PI / 3;
+    const fxPx   = W / (2 * Math.tan(fovY * W / (2 * H) / (W/H)));
+    const fyPx   = H / (2 * Math.tan(fovY / 2));
+    const viewMat = lookAt(eyeV, targetV, upV);
+    const projMat = perspective(fovY, W/H, 0.1, 200);
+
+    // Trigger sort every 100ms
+    if (now - lastSort > 100) { requestSortSafe(viewMat); lastSort = now; }
+
+    // Draw
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.disable(gl.DEPTH_TEST);
+
+    gl.useProgram(prog);
+    gl.uniformMatrix4fv(uView, false, viewMat);
+    gl.uniformMatrix4fv(uProj, false, projMat);
+    gl.uniform2f(uFocal, fxPx, fyPx);
+    gl.uniform2f(uVp, W, H);
+
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, posTex); gl.uniform1i(uPos, 0);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, covTex); gl.uniform1i(uCov, 1);
+    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, colTex); gl.uniform1i(uCol, 2);
+
+    gl.bindVertexArray(vao);
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, n);
+    gl.bindVertexArray(null);
+
+    // HUD
+    const [ex,ey,ez] = eyeV;
+    coordsEl.textContent = `x:${fmt(ex)}  y:${fmt(ey)}  z:${fmt(ez)}`;
+  }
+
+  requestAnimationFrame(frame);
 })();
 </script>
-
 </body>
 </html>
