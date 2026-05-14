@@ -5,11 +5,6 @@
 Record a short walkthrough of any room with your phone, run one command, and get a
 navigable 3D scene you can explore in any browser — fully local, no cloud, no subscription.
 
-**Recording Guidelines:**
-- Walk very slowly 
-- Do not rotate the camera/phone but try to do translational movement where the camera center changes between frames 
-- Big flat solid color surfaces should not dominate a frame without anchor geometric shapes. For instance, if you have a large empty wall, avoid havingthe camera directly at it. Every frame with that wall must have other objects with it.  
-
 ```bash
 roomsplat run living_room.mp4 --name "Living Room"
 ```
@@ -32,12 +27,12 @@ Phone video  ──►  Frame extraction  ──►  Camera poses  ──►  3D
                                                                ~35–100 min)
 ```
 
-1. **Frame extraction** — Samples frames at ~0.8–2.5 fps, resizes to a target longest edge,
+1. **Frame extraction** — Samples frames at X fps, resizes to a target longest edge,
    skips near-duplicates (handles user pauses mid-walk).
 2. **Pose estimation** — COLMAP sequential or exhaustive SfM recovers camera poses for every
    frame. MASt3R is available as a deep-learning fallback for texture-poor rooms.
 3. **3DGS training** — The official [gaussian-splatting](https://github.com/graphdeco-inria/gaussian-splatting)
-   trainer builds a scene of 300k–3M Gaussians (30k iter ≈ 35 min; 50k iter ≈ 100 min on RTX 3080).
+   trainer builds a scene of 300k–3M Gaussians (30k iter ≈ 90 min; 50k iter ≈ 120 min on RTX 3080).
 4. **Export** — The trained `.ply` is converted to the compact `.splat` binary (≈10–60 MB) and a
    `cameras.json` is written so the viewer starts at a real training-camera position.
 5. **Viewer** — A self-contained HTML page powered by
@@ -50,7 +45,6 @@ Phone video  ──►  Frame extraction  ──►  Camera poses  ──►  3D
 
 | Requirement | Version |
 |---|---|
-| OS | Linux or macOS (Windows: WSL2) |
 | GPU | NVIDIA ≥ 8 GB VRAM (tested: RTX 3080 16 GB) |
 | CUDA | 11.8 or 12.x |
 | Python | 3.10+ |
@@ -178,7 +172,8 @@ living_room_splat/
 - **Cover all angles** — move around objects, not just along the walls
 - **Overlap** — each position should share ~60% of the view with the previous frame
 - **Light it well** — bright, even lighting; avoid very dark corners
-- **Add texture to bare walls** — see the section below
+- **Add texture to bare walls** — Big flat solid color surfaces should not dominate a frame without anchor geometric shapes. For instance, if you have a large empty wall, avoid havingthe camera directly at it. Every frame with that wall must have other objects with it. See the section below
+- **Translational Movement**  — Do not rotate the camera/phone but try to do translational movement where the camera center changes between frames 
 
 ---
 
@@ -214,6 +209,7 @@ These are lessons from 10+ training runs on a single office scene:
 
 | Learning | Detail |
 |---|---|
+| **Low FPS helped** | `--fps 0.8` reduced a lot of duplicate frames and processing time without losing useful information |
 | **Exhaustive > sequential matching** | `--matcher exhaustive` raised registration from 85% to 99% on a 420-frame walk; worth the extra time |
 | **Max-dim sweet spot: 1600** | At 1920+ px the 16 GB GPU OOMs during training from Gaussian accumulation; 1600 px fits comfortably |
 | **SH2 ≈ SH3 visually, but saves ~800 MB VRAM** | SH3 stores 48 floats/Gaussian vs 27 for SH2; imperceptible difference in a room scene |
@@ -272,7 +268,7 @@ The `docs/` directory contains a pre-built interactive demo of the office scene 
 Enable GitHub Pages in your repo settings (main branch → `/docs`) and the demo will be live at:
 
 ```
-https://your-username.github.io/roomsplat
+https://ahmedn1.github.io/roomsplat
 ```
 
 To serve it locally first:
