@@ -9,12 +9,18 @@ navigable 3D scene you can explore in any browser — fully local, no cloud, no 
 roomsplat run living_room.mp4 --name "Living Room"
 ```
 
-[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-GitHub_Pages-blue)](https://ahmedn1.github.io/roomsplat)
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-Netlify-blue)](https://roomsplat-demo.netlify.app)
+
+> **Demo note:** The live demo loads the compact `.splat` file (11 MB, SH0 flat colour) for fast
+> in-browser loading. The screenshots below are rendered from the full `.ply` file (SH2
+> view-dependent colour) using `roomsplat view` locally — colours shift subtly as you move,
+> which the demo does not show. Run the pipeline locally to get the full-quality experience.
 
 <p align="center">
-  <img src="docs/Screenshot from 2026-05-13 22-17-08.png" width="49%" alt="Office scene view 1"/>
-  <img src="docs/Screenshot from 2026-05-13 22-18-52.png" width="49%" alt="Office scene view 2"/>
+  <img src="docs/Screenshot from 2026-05-13 22-17-08.png" width="49%" alt="Office scene — full .ply SH2 render, view 1"/>
+  <img src="docs/Screenshot from 2026-05-13 22-18-52.png" width="49%" alt="Office scene — full .ply SH2 render, view 2"/>
 </p>
+<p align="center"><em>Screenshots captured from the full .ply viewer (SH2, view-dependent colour).</em></p>
 
 ---
 
@@ -262,14 +268,18 @@ These are lessons from 10+ training runs on a single office scene:
 
 ---
 
-## Live demo (GitHub Pages)
+## Live demo (Netlify)
 
-The `docs/` directory contains a pre-built interactive demo of the office scene (11 MB .splat).
-Enable GitHub Pages in your repo settings (main branch → `/docs`) and the demo will be live at:
+The `docs/` directory contains a pre-built interactive demo of the office scene (11 MB `.splat`).
+Hosted on Netlify so the viewer gets the `Cross-Origin-Opener-Policy` / `Cross-Origin-Embedder-Policy`
+headers required by the WebAssembly sort worker:
 
 ```
-https://ahmedn1.github.io/roomsplat
+https://roomsplat-demo.netlify.app
 ```
+
+The demo loads the `.splat` (SH0, flat colour). The screenshots in this README are from the
+full `.ply` viewer (SH2, view-dependent colour) — run `roomsplat view` locally for that quality.
 
 To serve it locally first:
 ```bash
