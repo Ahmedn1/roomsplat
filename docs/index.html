@@ -160,7 +160,8 @@ import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gauss
 
   const viewer = new GaussianSplats3D.Viewer(viewerOpts);
 
-  await viewer.addSplatScene('scene.splat', {
+  const splatUrl = new URL('scene.splat', window.location.href).href;
+  await viewer.addSplatScene(splatUrl, {
     splatAlphaRemovalThreshold: 5,
     showLoadingUI: false,
     onProgress(pct) {
