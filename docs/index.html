@@ -59,9 +59,10 @@
     font-size: .72rem; padding: 3px 10px; border-radius: 4px; border: none;
     cursor: pointer; font-weight: 600; transition: background .15s;
   }
-  #btn-splat        { background: #4ea8de; color: #fff; }
-  #btn-ply          { background: #444; color: #666; cursor: not-allowed; }
-  #btn-ply:hover    { background: #444; }
+  #btn-splat        { background: #333; color: #aaa; }
+  #btn-ply          { background: #333; color: #aaa; }
+  #btn-splat.active { background: #4ea8de; color: #fff; }
+  #btn-ply.active   { background: #5cb85c; color: #fff; }
   #format-note {
     font-size: .68rem; color: rgba(255,255,255,.35);
     background: rgba(0,0,0,.35); backdrop-filter: blur(6px);
@@ -94,11 +95,11 @@
   <div id="format-toggle">
     <span>Quality:</span>
     <button id="btn-splat">.splat — SH0</button>
-    <button id="btn-ply" title="Full-quality .ply not hosted in this demo">.ply — SH2 ✗</button>
+    <button id="btn-ply">.ply — SH2</button>
   </div>
   <div id="format-note">
-    This demo loads the compact <strong>.splat</strong> file (11 MB, SH0 flat colour).<br>
-    Run locally with <code>roomsplat view</code> to get SH2 view-dependent colour from the full .ply.
+    <strong>.splat</strong> — 11 MB, fast load, flat colour (SH0)<br>
+    <strong>.ply</strong> — 87 MB, view-dependent colour (SH2), like the screenshots
   </div>
   <a id="gh-link" href="https://github.com/Ahmedn1/roomsplat" target="_blank">★ GitHub — roomsplat</a>
 </div>
@@ -121,19 +122,27 @@
 import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.6/build/gaussian-splats-3d.module.js';
 
 (async () => {
+  const PLY_URL   = 'https://huggingface.co/datasets/Ahmedn1/roomsplat-office/resolve/main/scene.ply';
+  const params    = new URLSearchParams(location.search);
+  const usePly    = params.get('format') === 'ply';
+
+  const btnSplat      = document.getElementById('btn-splat');
+  const btnPly        = document.getElementById('btn-ply');
   const progressFill  = document.getElementById('progress-fill');
   const loadingStatus = document.getElementById('loading-status');
   const loading       = document.getElementById('loading');
 
-  document.getElementById('btn-ply').addEventListener('click', () => {
-    alert(
-      'The full-quality .ply file (87 MB, SH2 view-dependent colour) is not hosted in this demo.\n\n' +
-      'To view it locally:\n' +
-      '  git clone https://github.com/Ahmedn1/roomsplat\n' +
-      '  roomsplat run your_video.mp4\n' +
-      '  roomsplat view output_dir/'
-    );
+  btnSplat.classList.toggle('active', !usePly);
+  btnPly.classList.toggle('active',    usePly);
+
+  btnSplat.addEventListener('click', () => {
+    if (usePly) { params.delete('format'); location.search = params.toString(); }
   });
+  btnPly.addEventListener('click', () => {
+    if (!usePly) { params.set('format', 'ply'); location.search = params.toString(); }
+  });
+
+  loadingStatus.textContent = usePly ? 'Fetching scene.ply (87 MB)…' : 'Fetching scene.splat (11 MB)…';
 
   let camPos    = undefined;
   let camLookAt = undefined;
@@ -159,8 +168,8 @@ import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gauss
 
   const viewer = new GaussianSplats3D.Viewer(viewerOpts);
 
-  const splatUrl = new URL('scene.splat', window.location.href).href;
-  await viewer.addSplatScene(splatUrl, {
+  const sceneUrl  = usePly ? PLY_URL : new URL('scene.splat', window.location.href).href;
+  const sceneOpts = {
     splatAlphaRemovalThreshold: 5,
     showLoadingUI: false,
     onProgress(pct) {
@@ -169,7 +178,10 @@ import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gauss
         ? `Loading… ${pct.toFixed(0)}%`
         : 'Processing…';
     },
-  });
+  };
+  if (usePly) sceneOpts.sphericalHarmonicsDegree = 2;
+
+  await viewer.addSplatScene(sceneUrl, sceneOpts);
 
   loading.style.display = 'none';
   viewer.start();
