@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "roomsplat"
+version = "0.1.0"
+requires-python = ">=3.8"
+description = "Real estate room tours from a short phone video using 3D Gaussian Splatting"
+license = { text = "MIT" }
+dependencies = [
+    "typer[all]>=0.9",
+    "rich>=13",
+    "opencv-python-headless>=4.8",
+    "numpy>=1.20",
+    "plyfile>=1.0",
+    "scipy>=1.7",
+]
+
+[project.optional-dependencies]
+# pycolmap must be installed from wheel matching your CUDA version
+# pip install pycolmap  (see https://github.com/colmap/pycolmap)
+colmap = ["pycolmap>=0.6"]
+
+[project.scripts]
+roomsplat = "roomsplat.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["roomsplat*"]

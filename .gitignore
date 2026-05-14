@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Large experiment outputs
+*.mp4
+*.mov
+frames/
+images/
+model/
+colmap_workspace/
+sparse/
+undistorted/
+office_*/
+living_room_*/
+bedroom_*/
+*_splat/
+
+# Dev artifacts
+.cursor/
+.claude/
+chatgpt_conv.md
+render_webview.py
+render_initial_view.py
+render_novel_views.py
+clean_ply.py
+clean_ply_cap_scales.py
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/

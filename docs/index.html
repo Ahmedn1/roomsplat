@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Office — roomsplat demo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #000; overflow: hidden; font-family: system-ui, sans-serif; }
+
+  #ui {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 16px 20px; pointer-events: none; z-index: 10;
+  }
+  #room-name {
+    color: #fff; font-size: 1.1rem; font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0,0,0,.7);
+    background: rgba(0,0,0,.35); backdrop-filter: blur(6px);
+    padding: 6px 14px; border-radius: 8px;
+  }
+  #controls {
+    color: rgba(255,255,255,.65); font-size: .75rem; line-height: 1.7;
+    text-align: right;
+    background: rgba(0,0,0,.3); backdrop-filter: blur(6px);
+    padding: 8px 12px; border-radius: 8px;
+  }
+  #loading {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #111; color: #ccc; gap: 16px; z-index: 20;
+  }
+  #loading h2 { font-size: 1.3rem; font-weight: 400; }
+  #progress-bar {
+    width: 280px; height: 4px; background: #333; border-radius: 2px; overflow: hidden;
+  }
+  #progress-fill { height: 100%; width: 0; background: #4ea8de; transition: width .1s; }
+  #loading-status { font-size: .8rem; color: #666; }
+  #coords {
+    position: absolute; bottom: 16px; left: 20px;
+    color: rgba(255,255,255,.8); font-size: .72rem; line-height: 1.6;
+    font-family: 'Courier New', monospace;
+    background: rgba(0,0,0,.4); backdrop-filter: blur(6px);
+    padding: 6px 10px; border-radius: 6px;
+    pointer-events: none; white-space: pre; z-index: 10;
+  }
+  #bottom-bar {
+    position: absolute; bottom: 16px; right: 20px;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+    z-index: 10;
+  }
+  #format-toggle {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,.45); backdrop-filter: blur(6px);
+    padding: 6px 12px; border-radius: 6px;
+  }
+  #format-toggle span { font-size: .72rem; color: rgba(255,255,255,.55); }
+  #format-toggle button {
+    font-size: .72rem; padding: 3px 10px; border-radius: 4px; border: none;
+    cursor: pointer; font-weight: 600; transition: background .15s;
+  }
+  #btn-splat        { background: #4ea8de; color: #fff; }
+  #btn-ply          { background: #444; color: #666; cursor: not-allowed; }
+  #btn-ply:hover    { background: #444; }
+  #format-note {
+    font-size: .68rem; color: rgba(255,255,255,.35);
+    background: rgba(0,0,0,.35); backdrop-filter: blur(6px);
+    padding: 4px 10px; border-radius: 5px; text-align: right; max-width: 280px;
+  }
+  #gh-link {
+    font-size: .72rem; color: rgba(255,255,255,.5);
+    background: rgba(0,0,0,.4); backdrop-filter: blur(6px);
+    padding: 5px 10px; border-radius: 5px;
+    text-decoration: none;
+  }
+  #gh-link:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <div id="room-name">Office — roomsplat demo</div>
+  <div id="controls">
+    Left-drag — orbit<br>
+    Right-drag — pan<br>
+    Scroll — zoom<br>
+    WASD — fly
+  </div>
+</div>
+
+<div id="coords"></div>
+
+<div id="bottom-bar">
+  <div id="format-toggle">
+    <span>Quality:</span>
+    <button id="btn-splat">.splat — SH0</button>
+    <button id="btn-ply" title="Full-quality .ply not hosted in this demo">.ply — SH2 ✗</button>
+  </div>
+  <div id="format-note">
+    This demo loads the compact <strong>.splat</strong> file (11 MB, SH0 flat colour).<br>
+    Run locally with <code>roomsplat view</code> to get SH2 view-dependent colour from the full .ply.
+  </div>
+  <a id="gh-link" href="https://github.com/your-username/roomsplat" target="_blank">★ GitHub — roomsplat</a>
+</div>
+
+<div id="loading">
+  <h2>Loading scene…</h2>
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <div id="loading-status">Fetching scene.splat (11 MB)…</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as GaussianSplats3D from 'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.6/build/gaussian-splats-3d.module.js';
+
+(async () => {
+  const progressFill  = document.getElementById('progress-fill');
+  const loadingStatus = document.getElementById('loading-status');
+  const loading       = document.getElementById('loading');
+
+  // .ply (87 MB) is not hosted in docs/ — too large for a GitHub Pages demo.
+  // The full-quality PLY viewer is available when running locally via `roomsplat view`.
+  document.getElementById('btn-ply').addEventListener('click', () => {
+    alert(
+      'The full-quality .ply file (87 MB, SH2 view-dependent colour) is not hosted in this demo.\n\n' +
+      'To view it locally:\n' +
+      '  git clone https://github.com/your-username/roomsplat\n' +
+      '  roomsplat run your_video.mp4\n' +
+      '  roomsplat view output_dir/'
+    );
+  });
+
+  let camPos    = undefined;
+  let camLookAt = undefined;
+  try {
+    const cd = await fetch('cameras.json').then(r => r.ok ? r.json() : null);
+    if (cd && cd.cameras && cd.cameras.length > 0) {
+      const cam = cd.cameras[cd.initial ?? Math.floor(cd.cameras.length / 2)];
+      const p = cam.pos, fwd = cam.forward;
+      camPos    = p;
+      camLookAt = [p[0] + fwd[0], p[1] + fwd[1], p[2] + fwd[2]];
+    }
+  } catch (_) {}
+
+  const viewerOpts = {
+    cameraUp: [0, -1, 0],
+    selfDrivenMode: true,
+    useBuiltInControls: true,
+    renderMode: GaussianSplats3D.RenderMode.OnChange,
+  };
+  if (camPos)    viewerOpts.initialCameraPosition = camPos;
+  if (camLookAt) viewerOpts.initialCameraLookAt   = camLookAt;
+
+  const viewer = new GaussianSplats3D.Viewer(viewerOpts);
+
+  await viewer.addSplatScene('scene.splat', {
+    splatAlphaRemovalThreshold: 5,
+    showLoadingUI: false,
+    onProgress(pct) {
+      progressFill.style.width = pct + '%';
+      loadingStatus.textContent = pct < 100
+        ? `Loading… ${pct.toFixed(0)}%`
+        : 'Processing…';
+    },
+  });
+
+  loading.style.display = 'none';
+  viewer.start();
+
+  const coordsEl = document.getElementById('coords');
+  const fmt = n => n.toFixed(3).padStart(8);
+  (function tick() {
+    requestAnimationFrame(tick);
+    const p = viewer.camera && viewer.camera.position;
+    if (p) coordsEl.textContent = `x:${fmt(p.x)}  y:${fmt(p.y)}  z:${fmt(p.z)}`;
+  })();
+})();
+</script>
+
+</body>
+</html>
