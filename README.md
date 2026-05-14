@@ -2,16 +2,24 @@
 
 **Real estate room tours from a short phone video using 3D Gaussian Splatting.**
 
-Record a 30–60 second walkthrough of any room with your phone, run one command, and get a
+Record a short walkthrough of any room with your phone, run one command, and get a
 navigable 3D scene you can explore in any browser — fully local, no cloud, no subscription.
+
+**Recording Guidelines:**
+- Walk very slowly 
+- Do not rotate the camera/phone but try to do translational movement where the camera center changes between frames 
+- Big flat solid color surfaces should not dominate a frame without anchor geometric shapes. For instance, if you have a large empty wall, avoid havingthe camera directly at it. Every frame with that wall must have other objects with it.  
 
 ```bash
 roomsplat run living_room.mp4 --name "Living Room"
 ```
 
-[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-GitHub_Pages-blue)](https://your-username.github.io/roomsplat)
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-GitHub_Pages-blue)](https://ahmedn1.github.io/roomsplat)
 
-> **Screenshot placeholder** — replace with a render of your best scene before publishing.
+<p align="center">
+  <img src="docs/Screenshot from 2026-05-13 22-17-08.png" width="49%" alt="Office scene view 1"/>
+  <img src="docs/Screenshot from 2026-05-13 22-18-52.png" width="49%" alt="Office scene view 2"/>
+</p>
 
 ---
 
@@ -75,7 +83,7 @@ pip install pycolmap
 ## Installation
 
 ```bash
-git clone https://github.com/your-username/roomsplat
+git clone https://github.com/Ahmedn1/roomsplat
 cd roomsplat
 pip install -e .
 ```
