@@ -10,7 +10,7 @@ roomsplat run living_room.mp4 --name "Living Room"
 ```
 
 [![Live Demo](https://img.shields.io/badge/▶_Live_Demo-Netlify-blue)](https://roomsplat-demo.netlify.app)
-[![Kaggle Notebook](https://img.shields.io/badge/📓_Notebook-Kaggle-20BEFF)](https://www.kaggle.com/code/ahmedn1/videosplat-4d-gaussian-splatting-from-casual-mult)
+[![Kaggle Notebook](https://img.shields.io/badge/📓_Notebook-Kaggle-20BEFF)](https://www.kaggle.com/code/ahmedn1/roomsplat-3d-gaussian-splatting-for-room-tours)
 
 > **Demo note:** The live demo loads the compact `.splat` file (11 MB, SH0 flat colour) for fast
 > in-browser loading. The screenshots below are rendered from the full `.ply` file (SH3
